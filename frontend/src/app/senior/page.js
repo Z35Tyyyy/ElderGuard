@@ -30,6 +30,8 @@ export default function SeniorDashboard() {
 
     useEffect(() => {
         fetchData();
+        const interval = setInterval(fetchData, 10000);
+        return () => clearInterval(interval);
     }, [fetchData]);
 
     const handleInvite = async (e) => {
