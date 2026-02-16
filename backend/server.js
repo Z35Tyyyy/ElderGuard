@@ -30,7 +30,10 @@ app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/invite', inviteRoutes);
 app.use('/api/transactions', transactionRoutes);
 
-// Health check
+// Health check (supports both /health and /api/health for Render)
+app.get('/health', (req, res) => {
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
 app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
