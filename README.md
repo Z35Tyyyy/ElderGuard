@@ -4,6 +4,14 @@ A guardian-based multi-factor authentication MVP that prevents financial scams o
 
 > ⚠️ **Educational / Research Project** — This is a simulation. No real financial data or payment gateways are used.
 
+## 🌐 Live Demo
+
+| Service | URL |
+|---|---|
+| **Frontend** | [elderguard-alpha.vercel.app](https://elderguard-alpha.vercel.app) |
+| **Backend API** | [elderguard.onrender.com](https://elderguard.onrender.com) |
+| **GitHub** | [github.com/Z35Tyyyy/ElderGuard](https://github.com/Z35Tyyyy/ElderGuard) |
+
 ---
 
 ## 🏗️ Tech Stack
@@ -14,15 +22,16 @@ A guardian-based multi-factor authentication MVP that prevents financial scams o
 | Backend | Node.js + Express |
 | Database | MongoDB Atlas (via Mongoose ODM) |
 | Auth | JWT (jsonwebtoken + bcryptjs) |
-| Email | Nodemailer (Ethereal for dev) |
+| Email | Nodemailer (Gmail SMTP) |
 | Styling | Vanilla CSS (dark theme, accessible) |
+| Hosting | Vercel (Frontend) + Render (Backend) |
 
 ---
 
 ## 📁 Project Structure
 
 ```
-DS AAT/
+ElderGuard/
 ├── backend/
 │   ├── config/db.js          # MongoDB Atlas connection
 │   ├── middleware/            # Auth, rate limiting, validation
@@ -41,18 +50,18 @@ DS AAT/
 
 ---
 
-## 🚀 Setup Instructions
+## 🚀 Setup Instructions (Local Development)
 
 ### Prerequisites
 
 - **Node.js** 18+ installed
 - **MongoDB Atlas** account (free tier works)
-- **Git** (optional)
 
-### 1. Clone / Navigate to Project
+### 1. Clone the Repository
 
 ```bash
-cd "c:\Users\Asus\Desktop\DS AAT"
+git clone https://github.com/Z35Tyyyy/ElderGuard.git
+cd ElderGuard
 ```
 
 ### 2. Set Up MongoDB Atlas
@@ -61,14 +70,11 @@ cd "c:\Users\Asus\Desktop\DS AAT"
 2. Create a free cluster
 3. Create a database user (username + password)
 4. Whitelist your IP (or allow all: `0.0.0.0/0`)
-5. Get the connection string — looks like:
-   ```
-   mongodb+srv://username:password@cluster0.xxxxx.mongodb.net/elderguard?retryWrites=true&w=majority
-   ```
+5. Get the connection string
 
 ### 3. Configure Backend Environment
 
-Edit `backend/.env` and replace the `MONGO_URI` with your Atlas connection string:
+Create `backend/.env` (see `backend/.env.example` for reference):
 
 ```env
 MONGO_URI=mongodb+srv://YOUR_USER:YOUR_PASS@YOUR_CLUSTER.mongodb.net/elderguard?retryWrites=true&w=majority
@@ -76,6 +82,10 @@ JWT_SECRET=your_super_secret_key
 PORT=5000
 FRONTEND_URL=http://localhost:3000
 TXN_THRESHOLD=5000
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your_email@gmail.com
+SMTP_PASS=your_app_password
 ```
 
 ### 4. Start Backend
@@ -84,13 +94,6 @@ TXN_THRESHOLD=5000
 cd backend
 npm install
 npm start
-```
-
-You should see:
-```
-✅ MongoDB Atlas connected: cluster0-shard-00-xx.xxxxx.mongodb.net
-📧 Email configured with Ethereal test account
-✅ 🛡️ ElderGuard backend running on port 5000
 ```
 
 ### 5. Start Frontend
@@ -111,18 +114,16 @@ Visit **http://localhost:3000**
 
 ### Step 1: Register Users
 
-1. Open http://localhost:3000/register
+1. Open the app at [elderguard-alpha.vercel.app/register](https://elderguard-alpha.vercel.app/register)
 2. Register a **Senior** account (e.g., `senior@test.com`)
-3. Register a **Guardian** account (e.g., `guardian@test.com`)
+3. Register a **Guardian** account (e.g., `guardian@gmail.com`)
 
 ### Step 2: Link Guardian
 
 1. Login as the **Senior**
 2. On the dashboard, enter the guardian's email and click **Send Invite**
-3. Check the backend console — it will log an **Ethereal preview URL**
-4. Login as the **Guardian** and go to the invite link:
-   `http://localhost:3000/invite/<token>` (token is shown in backend logs)
-5. Click **Accept Invitation**
+3. The guardian receives an email with an **Accept Invitation** link
+4. Guardian clicks the link → accepts invitation → users are linked
 
 ### Step 3: Create a High-Value Transaction
 
@@ -146,6 +147,8 @@ Visit **http://localhost:3000**
 ---
 
 ## 📡 API Endpoints
+
+Base URL: `https://elderguard.onrender.com/api`
 
 | Method | Endpoint | Description |
 |---|---|---|
@@ -176,14 +179,9 @@ Visit **http://localhost:3000**
 
 ## 📧 Email Notifications
 
-In development, emails are captured by **Ethereal** (no real emails sent). The backend console logs preview URLs like:
-
-```
-📧 Guardian alert sent to guardian@test.com
-   Preview URL: https://ethereal.email/message/...
-```
-
-Visit the URL to see the rendered email.
+The app uses **Gmail SMTP** to send real email notifications:
+- **Guardian Alert** — sent when a high-value transaction is created
+- **Invite Email** — sent when a senior invites someone as their guardian
 
 ---
 
@@ -194,6 +192,23 @@ Visit the URL to see the rendered email.
 - **Clear status indicators** with color-coded badges
 - **Responsive** — works on mobile and desktop
 - **Minimal clutter** — focused, intentional UI
+
+---
+
+## 🚀 Deployment
+
+| Service | Platform | Config |
+|---|---|---|
+| Backend | Render | Root: `backend`, Build: `npm install`, Start: `node server.js` |
+| Frontend | Vercel | Root: `frontend`, Framework: Next.js |
+
+### Environment Variables
+
+**Render (Backend):**
+`MONGO_URI`, `JWT_SECRET`, `PORT`, `FRONTEND_URL`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `TXN_THRESHOLD`
+
+**Vercel (Frontend):**
+`NEXT_PUBLIC_API_URL`
 
 ---
 
