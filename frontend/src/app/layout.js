@@ -8,7 +8,7 @@ const inter = Inter({
 
 export const metadata = {
   title: "ElderGuard — Guardian MFA for Senior Citizens",
-  description: "Protect senior citizens from financial scams with guardian-based multi-factor authentication. Trusted guardians approve high-risk transactions.",
+  description: "Protect senior citizens from financial scams with guardian-based multi-factor authentication. Trusted guardians approve high-risk transactions and manage accounts securely.",
 };
 
 export default function RootLayout({ children }) {
