@@ -8,47 +8,48 @@ let transporter = null;
  * Ethereal captures emails so you can preview them without sending real mail.
  */
 const initMailer = async () => {
-    if (process.env.SMTP_HOST && process.env.SMTP_USER) {
-        transporter = nodemailer.createTransport({
-            host: process.env.SMTP_HOST,
-            port: parseInt(process.env.SMTP_PORT) || 587,
-            secure: false,
-            auth: {
-                user: process.env.SMTP_USER,
-                pass: process.env.SMTP_PASS
-            }
-        });
-        console.log('📧 Email configured with custom SMTP');
-    } else {
-        // Create Ethereal test account for development
-        const testAccount = await nodemailer.createTestAccount();
-        transporter = nodemailer.createTransport({
-            host: 'smtp.ethereal.email',
-            port: 587,
-            secure: false,
-            auth: {
-                user: testAccount.user,
-                pass: testAccount.pass
-            }
-        });
-        console.log('📧 Email configured with Ethereal test account');
-        console.log(`   Preview emails at: https://ethereal.email/login`);
-        console.log(`   User: ${testAccount.user}`);
-        console.log(`   Pass: ${testAccount.pass}`);
-    }
+  if (process.env.SMTP_HOST && process.env.SMTP_USER) {
+    const port = parseInt(process.env.SMTP_PORT) || 587;
+    transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port,
+      secure: port === 465,
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS
+      }
+    });
+    console.log('📧 Email configured with custom SMTP');
+  } else {
+    // Create Ethereal test account for development
+    const testAccount = await nodemailer.createTestAccount();
+    transporter = nodemailer.createTransport({
+      host: 'smtp.ethereal.email',
+      port: 587,
+      secure: false,
+      auth: {
+        user: testAccount.user,
+        pass: testAccount.pass
+      }
+    });
+    console.log('📧 Email configured with Ethereal test account');
+    console.log(`   Preview emails at: https://ethereal.email/login`);
+    console.log(`   User: ${testAccount.user}`);
+    console.log(`   Pass: ${testAccount.pass}`);
+  }
 };
 
 /**
  * Send guardian approval request email
  */
 const sendGuardianAlert = async (guardianEmail, guardianName, seniorName, transaction) => {
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
 
-    const info = await transporter.sendMail({
-        from: '"ElderGuard System" <alerts@elderguard.app>',
-        to: guardianEmail,
-        subject: `⚠️ Transaction Approval Required — ₹${transaction.amount.toLocaleString('en-IN')}`,
-        html: `
+  const info = await transporter.sendMail({
+    from: '"ElderGuard System" <onboarding@resend.dev>',
+    to: guardianEmail,
+    subject: `⚠️ Transaction Approval Required — ₹${transaction.amount.toLocaleString('en-IN')}`,
+    html: `
       <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <h2 style="color: #1a1a2e;">🛡️ ElderGuard — Guardian Alert</h2>
         <hr style="border: 1px solid #e0e0e0;" />
@@ -65,25 +66,25 @@ const sendGuardianAlert = async (guardianEmail, guardianName, seniorName, transa
         <p style="color: #999; font-size: 12px; margin-top: 30px;">This is an automated alert from ElderGuard. Do not share this email.</p>
       </div>
     `
-    });
+  });
 
-    console.log(`📧 Guardian alert sent to ${guardianEmail}`);
-    console.log(`   Preview URL: ${nodemailer.getTestMessageUrl(info) || 'N/A (real SMTP)'}`);
-    return info;
+  console.log(`📧 Guardian alert sent to ${guardianEmail}`);
+  console.log(`   Preview URL: ${nodemailer.getTestMessageUrl(info) || 'N/A (real SMTP)'}`);
+  return info;
 };
 
 /**
  * Send guardian invite email
  */
 const sendInviteEmail = async (guardianEmail, inviteToken, seniorName) => {
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-    const acceptUrl = `${frontendUrl}/invite/${inviteToken}`;
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+  const acceptUrl = `${frontendUrl}/invite/${inviteToken}`;
 
-    const info = await transporter.sendMail({
-        from: '"ElderGuard System" <invites@elderguard.app>',
-        to: guardianEmail,
-        subject: `🛡️ You've been invited as a Guardian for ${seniorName}`,
-        html: `
+  const info = await transporter.sendMail({
+    from: '"ElderGuard System" <onboarding@resend.dev>',
+    to: guardianEmail,
+    subject: `🛡️ You've been invited as a Guardian for ${seniorName}`,
+    html: `
       <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <h2 style="color: #1a1a2e;">🛡️ ElderGuard — Guardian Invitation</h2>
         <hr style="border: 1px solid #e0e0e0;" />
@@ -95,11 +96,11 @@ const sendInviteEmail = async (guardianEmail, inviteToken, seniorName) => {
         <p style="color: #999; font-size: 12px; margin-top: 30px;">If you did not expect this invitation, please ignore this email.</p>
       </div>
     `
-    });
+  });
 
-    console.log(`📧 Invite sent to ${guardianEmail}`);
-    console.log(`   Preview URL: ${nodemailer.getTestMessageUrl(info) || 'N/A (real SMTP)'}`);
-    return info;
+  console.log(`📧 Invite sent to ${guardianEmail}`);
+  console.log(`   Preview URL: ${nodemailer.getTestMessageUrl(info) || 'N/A (real SMTP)'}`);
+  return info;
 };
 
 module.exports = { initMailer, sendGuardianAlert, sendInviteEmail };
