@@ -1,23 +1,28 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { getMyTransactions, approveTransaction, rejectTransaction, getMe } from "@/lib/api";
+import { getMyTransactions, approveTransaction, rejectTransaction, getMe, getPendingInvites, acceptInvite } from "@/lib/api";
 import TransactionCard from "@/components/TransactionCard";
 
 export default function GuardianDashboard() {
     const [transactions, setTransactions] = useState([]);
     const [profile, setProfile] = useState(null);
+    const [invites, setInvites] = useState([]);
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState(false);
+    const [inviteLoading, setInviteLoading] = useState(false);
+    const [inviteMsg, setInviteMsg] = useState({ type: "", text: "" });
 
     const fetchData = useCallback(async () => {
         try {
-            const [txnData, profileData] = await Promise.all([
+            const [txnData, profileData, inviteData] = await Promise.all([
                 getMyTransactions(),
                 getMe(),
+                getPendingInvites(),
             ]);
             setTransactions(txnData.transactions || []);
             setProfile(profileData.user);
+            setInvites(inviteData.invites || []);
         } catch (err) {
             console.error(err);
         } finally {
@@ -55,6 +60,20 @@ export default function GuardianDashboard() {
         }
     };
 
+    const handleAcceptInvite = async (token) => {
+        setInviteMsg({ type: "", text: "" });
+        setInviteLoading(true);
+        try {
+            await acceptInvite(token);
+            setInviteMsg({ type: "success", text: "Invitation accepted! You are now linked." });
+            fetchData();
+        } catch (err) {
+            setInviteMsg({ type: "error", text: err.message });
+        } finally {
+            setInviteLoading(false);
+        }
+    };
+
     if (loading) {
         return (
             <div className="page-container" style={{ textAlign: "center", paddingTop: "4rem" }}>
@@ -85,8 +104,42 @@ export default function GuardianDashboard() {
                     </div>
                 </div>
             ) : (
-                <div className="alert alert-warning" style={{ marginBottom: "2rem" }}>
-                    ⚠️ You are not linked to any senior citizen yet. Ask them to send you an invite.
+                <div>
+                    {/* Pending Invites */}
+                    {inviteMsg.text && (
+                        <div className={`alert alert-${inviteMsg.type}`} style={{ marginBottom: "1rem" }}>
+                            {inviteMsg.type === "error" ? "⚠️" : "✅"} {inviteMsg.text}
+                        </div>
+                    )}
+
+                    {invites.length > 0 ? (
+                        <div className="invite-section" style={{ textAlign: "left" }}>
+                            <h3 style={{ textAlign: "center", marginBottom: "1rem" }}>📩 Pending Invitations</h3>
+                            {invites.map((invite) => (
+                                <div key={invite._id} className="card" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.75rem" }}>
+                                    <div>
+                                        <div style={{ fontWeight: 600 }}>
+                                            {invite.seniorId?.name || "A senior"}
+                                        </div>
+                                        <div style={{ fontSize: "0.85rem", color: "var(--color-text-secondary)" }}>
+                                            {invite.seniorId?.email} wants you as their guardian
+                                        </div>
+                                    </div>
+                                    <button
+                                        className="btn btn-success btn-sm"
+                                        onClick={() => handleAcceptInvite(invite.token)}
+                                        disabled={inviteLoading}
+                                    >
+                                        {inviteLoading ? <span className="spinner" /> : "Accept"}
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="alert alert-warning" style={{ marginBottom: "2rem" }}>
+                            ⚠️ You are not linked to any senior citizen yet. Ask them to send you an invite.
+                        </div>
+                    )}
                 </div>
             )}
 
@@ -150,3 +203,4 @@ export default function GuardianDashboard() {
         </div>
     );
 }
+
