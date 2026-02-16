@@ -1,3 +1,4 @@
+// ElderGuard v1.1 — Profile & Account Management
 import { Inter } from "next/font/google";
 import "./globals.css";
 
