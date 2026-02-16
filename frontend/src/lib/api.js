@@ -41,3 +41,7 @@ export const createTransaction = (body) => apiFetch('/transactions/create', { me
 export const getMyTransactions = () => apiFetch('/transactions/my');
 export const approveTransaction = (id) => apiFetch(`/transactions/${id}/approve`, { method: 'POST' });
 export const rejectTransaction = (id) => apiFetch(`/transactions/${id}/reject`, { method: 'POST' });
+
+// --- Account ---
+export const deleteAccount = (password, confirmation) => apiFetch('/auth/account', { method: 'DELETE', body: JSON.stringify({ password, confirmation }) });
+

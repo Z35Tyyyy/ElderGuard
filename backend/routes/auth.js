@@ -2,6 +2,7 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const { body } = require('express-validator');
 const User = require('../models/User');
+const Invite = require('../models/Invite');
 const validate = require('../middleware/validate');
 const { auth } = require('../middleware/auth');
 const logger = require('../utils/logger');
@@ -113,6 +114,56 @@ router.get('/me', auth, async (req, res) => {
     } catch (error) {
         logger.error('Profile fetch error', error.message);
         res.status(500).json({ message: 'Server error.' });
+    }
+});
+
+/**
+ * DELETE /api/auth/account
+ * Delete current user's account (requires password + typing "delete")
+ */
+router.delete('/account', auth, [
+    body('password').notEmpty().withMessage('Password is required'),
+    body('confirmation').equals('delete').withMessage('You must type "delete" to confirm'),
+    validate
+], async (req, res) => {
+    try {
+        const { password } = req.body;
+        const user = await User.findById(req.user._id);
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+
+        // Verify password
+        const isMatch = await user.comparePassword(password);
+        if (!isMatch) {
+            return res.status(401).json({ message: 'Incorrect password.' });
+        }
+
+        // Clean up linked relationships
+        if (user.role === 'senior' && user.guardianId) {
+            await User.findByIdAndUpdate(user.guardianId, { $unset: { linkedSeniorId: 1 } });
+        } else if (user.role === 'guardian' && user.linkedSeniorId) {
+            await User.findByIdAndUpdate(user.linkedSeniorId, { $unset: { guardianId: 1 } });
+        }
+
+        // Remove any pending invites
+        await Invite.deleteMany({
+            $or: [
+                { seniorId: user._id },
+                { guardianEmail: user.email }
+            ]
+        });
+
+        // Delete the user
+        await User.findByIdAndDelete(user._id);
+
+        logger.success(`Account deleted: ${user.email} (${user.role})`);
+
+        res.json({ message: 'Account deleted successfully.' });
+    } catch (error) {
+        logger.error('Account deletion error', error.message);
+        res.status(500).json({ message: 'Server error during account deletion.' });
     }
 });
 

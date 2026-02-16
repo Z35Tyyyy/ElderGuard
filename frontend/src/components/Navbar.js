@@ -18,7 +18,9 @@ export default function Navbar() {
                 🛡️ <span>ElderGuard</span>
             </Link>
             <div className="navbar-right">
-                <span className="navbar-user">{user.name}</span>
+                <Link href="/profile" className="navbar-user-link">
+                    <span className="navbar-user">{user.name}</span>
+                </Link>
                 <span className="navbar-role">{user.role}</span>
                 <button
                     className="btn btn-outline btn-sm"
